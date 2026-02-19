@@ -1,0 +1,24 @@
+# --- CodeIgniter 4 Default ---
+/writable/*
+!/writable/index.html
+!/writable/.htaccess
+
+/public/status.php
+/user_guide_src/build/*
+
+# --- Environment Settings ---
+.env
+php.ini
+
+# --- Composer ---
+/vendor/
+
+# --- IDEs & System Files ---
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# --- Log files ---
+/writable/logs/*.log
+!/writable/logs/index.html
