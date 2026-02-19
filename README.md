@@ -61,13 +61,13 @@ Additionally, make sure that the following extensions are enabled in your PHP:
 - [libcurl](http://php.net/manual/en/curl.requirements.php) if you plan to use the HTTP\CURLRequest library
 
 ## 📸 ภาพหน้าจอการใช้งาน (Screenshots)
-
-![Committee Dashboard](screenshots/committee.png)
+![Login Dashboard](screenshots/login.png)
 
 ![Admin Dashboard](screenshots/admin.png)
 
 ![Students Dashboard](screenshots/students.png)
 
+![Committee Dashboard](screenshots/committee.png)
+
 ![Advisor Dashboard](screenshots/advisor.png)
 
-![Login Dashboard](screenshots/login.png)
