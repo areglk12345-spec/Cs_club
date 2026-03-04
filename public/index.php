@@ -30,7 +30,9 @@ if (version_compare(PHP_VERSION, $minPhpVersion, '<')) {
  */
 
 // Path to the front controller (this file)
-define('FCPATH', __DIR__ . DIRECTORY_SEPARATOR);
+if (!defined('FCPATH')) {
+    define('FCPATH', __DIR__ . DIRECTORY_SEPARATOR);
+}
 
 // Ensure the current directory is pointing to the front controller's directory
 if (getcwd() . DIRECTORY_SEPARATOR !== FCPATH) {
@@ -48,7 +50,12 @@ if (getcwd() . DIRECTORY_SEPARATOR !== FCPATH) {
 
 // LOAD OUR PATHS CONFIG FILE
 // This is the line that might need to be changed, depending on your folder structure.
-require FCPATH . '../app/Config/Paths.php';
+$pathsPath = FCPATH . '../app/Config/Paths.php';
+if (!file_exists($pathsPath)) {
+    // Fallback for Vercel context if FCPATH is within 'public' but called from 'api'
+    $pathsPath = __DIR__ . '/../app/Config/Paths.php';
+}
+require $pathsPath;
 // ^^^ Change this line if you move your application folder
 
 $paths = new Paths();
