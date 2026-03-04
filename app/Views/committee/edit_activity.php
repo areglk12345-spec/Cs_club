@@ -10,43 +10,63 @@
                     <h5 class="mb-0"><i class="fas fa-edit"></i> แก้ไขข้อมูลกิจกรรม</h5>
                 </div>
                 <div class="card-body">
-                    <form action="<?= base_url('committee/activity/update/' . $activity['activity_id']) ?>" method="post">
-                        
+                    <form action="<?= base_url('committee/activity/update/' . $activity['activity_id']) ?>"
+                        method="post" enctype="multipart/form-data">
+
+                        <div class="mb-3 text-center">
+                            <?php if (!empty($activity['cover_image'])): ?>
+                                <img src="<?= base_url('uploads/activities/' . $activity['cover_image']) ?>"
+                                    class="img-thumbnail mb-2" style="max-height: 150px;">
+                            <?php endif; ?>
+                            <div class="text-start">
+                                <label class="form-label">เปลี่ยนรูปหน้าปกกิจกรรม</label>
+                                <input type="file" name="cover_image" class="form-control" accept="image/*">
+                            </div>
+                        </div>
+
                         <div class="mb-3">
                             <label class="form-label">ชื่อกิจกรรม <span class="text-danger">*</span></label>
-                            <input type="text" name="activity_name" class="form-control" required value="<?= $activity['activity_name'] ?>">
+                            <input type="text" name="activity_name" class="form-control" required
+                                value="<?= $activity['activity_name'] ?>">
                         </div>
 
                         <div class="mb-3">
                             <label class="form-label">รายละเอียด</label>
-                            <textarea name="description" class="form-control" rows="4"><?= $activity['description'] ?></textarea>
+                            <textarea name="description" class="form-control"
+                                rows="4"><?= $activity['description'] ?></textarea>
                         </div>
 
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label class="form-label">วันเริ่มกิจกรรม</label>
-                                <input type="datetime-local" name="start_date" class="form-control" required value="<?= date('Y-m-d\TH:i', strtotime($activity['start_date'])) ?>">
+                                <input type="datetime-local" name="start_date" class="form-control" required
+                                    value="<?= date('Y-m-d\TH:i', strtotime($activity['start_date'])) ?>">
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label class="form-label">วันสิ้นสุดกิจกรรม</label>
-                                <input type="datetime-local" name="end_date" class="form-control" required value="<?= date('Y-m-d\TH:i', strtotime($activity['end_date'])) ?>">
+                                <input type="datetime-local" name="end_date" class="form-control" required
+                                    value="<?= date('Y-m-d\TH:i', strtotime($activity['end_date'])) ?>">
                             </div>
                         </div>
 
                         <div class="mb-3">
                             <label class="form-label">สถานที่จัดกิจกรรม</label>
-                            <input type="text" name="location" class="form-control" required value="<?= $activity['location'] ?>">
+                            <input type="text" name="location" class="form-control" required
+                                value="<?= $activity['location'] ?>">
                         </div>
 
                         <div class="mb-3">
                             <label class="form-label">สถานะกิจกรรม</label>
                             <select name="status" class="form-select">
-                                <option value="planning" <?= $activity['status'] == 'planning' ? 'selected' : '' ?>>กำลังวางแผน (Planning)</option>
-                                <option value="approved" <?= $activity['status'] == 'approved' ? 'selected' : '' ?>>เปิดรับสมัคร (Approved/Open)</option>
-                                <option value="completed" <?= $activity['status'] == 'completed' ? 'selected' : '' ?>>ปิดรับสมัคร/เสร็จสิ้น</option>
+                                <option value="planning" <?= $activity['status'] == 'planning' ? 'selected' : '' ?>>
+                                    กำลังวางแผน (Planning)</option>
+                                <option value="approved" <?= $activity['status'] == 'approved' ? 'selected' : '' ?>>
+                                    เปิดรับสมัคร (Approved/Open)</option>
+                                <option value="completed" <?= $activity['status'] == 'completed' ? 'selected' : '' ?>>
+                                    ปิดรับสมัคร/เสร็จสิ้น</option>
                             </select>
                         </div>
-                        
+
                         <hr>
 
                         <div class="d-flex justify-content-between">

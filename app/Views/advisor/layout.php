@@ -1,37 +1,94 @@
 <!DOCTYPE html>
-<html lang="th">
-<head>
-    <meta charset="UTF-8">
-    <title><?= $this->renderSection('title') ?> - อาจารย์ที่ปรึกษา</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <style>
-        body { background-color: #f4f7f6; }
-        .sidebar { min-width: 250px; min-height: 100vh; background: #2c3e50; color: white; }
-        .sidebar a { color: #bdc3c7; text-decoration: none; padding: 15px 20px; display: block; }
-        .sidebar a:hover, .sidebar a.active { background: #1a252f; color: white; border-left: 4px solid #e67e22; }
-        .content { width: 100%; }
-        .top-nav { background: white; padding: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-    </style>
-</head>
+<html lang="th" data-bs-theme="light">
+<?= view('layouts/_header') ?>
+
 <body>
-<div class="d-flex">
-    <nav class="sidebar">
-        <div class="p-4 text-center"><h5>Advisor Panel</h5><hr></div>
-        <a href="<?= base_url('advisor/dashboard') ?>"><i class="fas fa-home me-2"></i> หน้าหลัก</a>
-        <a href="<?= base_url('advisor/check_activities') ?>"><i class="fas fa-check-square me-2"></i> 1. ตรวจสอบกิจกรรม</a>
-        <a href="<?= base_url('advisor/reports') ?>"><i class="fas fa-file-alt me-2"></i> 2. รายงานสรุปผล</a>
-        <a href="<?= base_url('logout') ?>" class="text-danger mt-5"><i class="fas fa-sign-out-alt me-2"></i> ออกจากระบบ</a>
-    </nav>
-    <div class="content">
-        <div class="top-nav d-flex justify-content-between">
-            <span class="fw-bold text-muted">ระบบอาจารย์ที่ปรึกษาสโมสร</span>
-            <span><i class="fas fa-user-circle"></i> อ. <?= session()->get('full_name') ?></span>
-        </div>
-        <div class="p-4">
-            <?= $this->renderSection('content') ?>
+
+    <div class="wrapper">
+        <nav class="sidebar shadow">
+            <div class="sidebar-header text-center">
+                <h4 class="mb-0"><i class="fas fa-chalkboard-teacher"></i> Advisor</h4>
+                <small class="opacity-75">อาจารย์ที่ปรึกษา</small>
+            </div>
+
+            <ul class="list-unstyled components">
+                <li>
+                    <a href="<?= base_url('advisor/dashboard') ?>"
+                        class="<?= uri_string() == 'advisor/dashboard' ? 'active' : '' ?>">
+                        <i class="fas fa-home me-2"></i> หน้าหลัก
+                    </a>
+                </li>
+                <li>
+                    <a href="<?= base_url('advisor/check_activities') ?>"
+                        class="<?= strpos(uri_string(), 'check_activities') !== false ? 'active' : '' ?>">
+                        <i class="fas fa-check-square me-2"></i> 1. ตรวจสอบกิจกรรม
+                    </a>
+                </li>
+                <li>
+                    <a href="<?= base_url('advisor/reports') ?>"
+                        class="<?= strpos(uri_string(), 'reports') !== false ? 'active' : '' ?>">
+                        <i class="fas fa-file-alt me-2"></i> 2. รายงานสรุปผล
+                    </a>
+                </li>
+            </ul>
+
+            <div class="text-center mt-auto p-4">
+                <a href="<?= base_url('logout') ?>" class="btn btn-outline-danger btn-sm w-100"
+                    onclick="return confirm('ยืนยันออกจากระบบ?');">
+                    <i class="fas fa-sign-out-alt"></i> ออกจากระบบ
+                </a>
+            </div>
+        </nav>
+
+        <div class="content">
+            <nav class="navbar navbar-expand-lg top-navbar bg-body shadow-sm border-bottom">
+                <div class="container-fluid">
+                    <span class="navbar-text fw-bold text-primary">
+                        <i class="fas fa-university"></i> Sci-Tech Advisor Panel
+                    </span>
+
+                    <div class="ms-auto d-flex align-items-center">
+                        <!-- Theme Toggle -->
+                        <div class="dropdown me-3">
+                            <button class="btn btn-link nav-link dropdown-toggle d-flex align-items-center"
+                                id="bd-theme" type="button" aria-expanded="false" data-bs-toggle="dropdown">
+                                <i class="fas fa-circle-half-stroke"></i>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end shadow">
+                                <li><button type="button" class="dropdown-item d-flex align-items-center"
+                                        data-bs-theme-value="light"><i class="fas fa-sun me-2 opacity-50"></i>
+                                        Light</button></li>
+                                <li><button type="button" class="dropdown-item d-flex align-items-center"
+                                        data-bs-theme-value="dark"><i class="fas fa-moon me-2 opacity-50"></i>
+                                        Dark</button></li>
+                                <li><button type="button" class="dropdown-item d-flex align-items-center"
+                                        data-bs-theme-value="auto"><i
+                                            class="fas fa-circle-half-stroke me-2 opacity-50"></i> Auto</button></li>
+                            </ul>
+                        </div>
+
+                        <div class="me-3 d-flex align-items-center">
+                            <div class="text-end d-none d-sm-block me-2">
+                                <span class="d-block fw-bold small"><?= session()->get('full_name') ?></span>
+                                <small class="text-muted small">Advisor</small>
+                            </div>
+                            <img src="<?= base_url('img/default-avatar.png') ?>" alt="Avatar"
+                                class="rounded-circle shadow-sm"
+                                style="width: 35px; height: 35px; object-fit: cover; border: 2px solid #198754;">
+                        </div>
+                    </div>
+                </div>
+            </nav>
+
+            <div class="main-content flex-grow-1 py-4">
+                <div class="container-fluid">
+                    <?= $this->renderSection('content') ?>
+                </div>
+            </div>
+
+            <?= view('layouts/_footer') ?>
         </div>
     </div>
-</div>
 </body>
+
 </html>

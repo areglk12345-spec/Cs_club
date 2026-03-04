@@ -15,8 +15,8 @@
             <h5 class="mb-0"><i class="fas fa-history"></i> ประวัติการเข้าร่วมกิจกรรมของฉัน</h5>
         </div>
         <div class="card-body">
-            
-            <?php if(empty($history)): ?>
+
+            <?php if (empty($history)): ?>
                 <div class="text-center py-5">
                     <i class="fas fa-clipboard-list fa-3x text-muted mb-3"></i>
                     <p class="text-muted">คุณยังไม่เคยลงทะเบียนเข้าร่วมกิจกรรมใดๆ</p>
@@ -37,31 +37,52 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <?php foreach($history as $index => $row): ?>
-                            <tr>
-                                <td><?= $index + 1 ?></td>
-                                <td>
-                                    <strong><?= $row['activity_name'] ?></strong><br>
-                                    <small class="text-muted"><i class="fas fa-map-marker-alt"></i> <?= $row['location'] ?></small>
-                                </td>
-                                <td><?= date('d/m/Y H:i', strtotime($row['start_date'])) ?></td>
-                                <td><?= date('d/m/Y H:i', strtotime($row['register_date'])) ?></td>
-                                <td class="text-center">
-                                    <?php if($row['status'] == 'approved'): ?>
-                                        <span class="badge bg-success rounded-pill px-3">
-                                            <i class="fas fa-check-circle"></i> อนุมัติแล้ว
-                                        </span>
-                                    <?php elseif($row['status'] == 'rejected'): ?>
-                                        <span class="badge bg-danger rounded-pill px-3">
-                                            <i class="fas fa-times-circle"></i> ไม่ผ่าน
-                                        </span>
-                                    <?php else: ?>
-                                        <span class="badge bg-secondary rounded-pill px-3">
-                                            <i class="fas fa-clock"></i> รออนุมัติ
-                                        </span>
-                                    <?php endif; ?>
-                                </td>
-                            </tr>
+                            <?php foreach ($history as $index => $row): ?>
+                                <tr>
+                                    <td><?= $index + 1 ?></td>
+                                    <td>
+                                        <strong><?= $row['activity_name'] ?></strong><br>
+                                        <small class="text-muted"><i class="fas fa-map-marker-alt"></i>
+                                            <?= $row['location'] ?></small>
+                                    </td>
+                                    <td><?= date('d/m/Y H:i', strtotime($row['start_date'])) ?></td>
+                                    <td><?= date('d/m/Y H:i', strtotime($row['register_date'])) ?></td>
+                                    <td class="text-center">
+                                        <?php if ($row['status'] == 'approved'): ?>
+                                            <span class="badge bg-success rounded-pill px-3 mb-1">
+                                                <i class="fas fa-check-circle"></i> อนุมัติแล้ว
+                                            </span>
+                                            <?php if (!empty($row['checkin_time'])): ?>
+                                                <div class="mt-1">
+                                                    <?php if (isset($row['rating'])): ?>
+                                                        <div class="text-warning mb-1">
+                                                            <?php for ($i = 1; $i <= 5; $i++): ?>
+                                                                <i class="<?= ($i <= $row['rating']) ? 'fas' : 'far' ?> fa-star small"></i>
+                                                            <?php endfor; ?>
+                                                        </div>
+                                                        <a href="<?= base_url('student/feedback/' . $row['activity_id']) ?>"
+                                                            class="btn btn-sm btn-outline-secondary" style="font-size: 0.7rem;">
+                                                            แก้ไขประเมิน
+                                                        </a>
+                                                    <?php else: ?>
+                                                        <a href="<?= base_url('student/feedback/' . $row['activity_id']) ?>"
+                                                            class="btn btn-sm btn-outline-warning">
+                                                            <i class="fas fa-star"></i> ประเมินผล
+                                                        </a>
+                                                    <?php endif; ?>
+                                                </div>
+                                            <?php endif; ?>
+                                        <?php elseif ($row['status'] == 'rejected'): ?>
+                                            <span class="badge bg-danger rounded-pill px-3">
+                                                <i class="fas fa-times-circle"></i> ไม่ผ่าน
+                                            </span>
+                                        <?php else: ?>
+                                            <span class="badge bg-secondary rounded-pill px-3">
+                                                <i class="fas fa-clock"></i> รออนุมัติ
+                                            </span>
+                                        <?php endif; ?>
+                                    </td>
+                                </tr>
                             <?php endforeach; ?>
                         </tbody>
                     </table>

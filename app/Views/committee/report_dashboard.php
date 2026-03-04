@@ -9,9 +9,19 @@
 
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h3><i class="fas fa-chart-line"></i> รายงานสรุปผลการดำเนินงาน</h3>
-        <button onclick="exportTableToExcel('detailTable')" class="btn btn-success">
-            <i class="fas fa-file-excel"></i> Export Excel
-        </button>
+        <div class="d-flex gap-2">
+            <form action="<?= base_url('committee/reports') ?>" method="get" class="d-flex gap-2 align-items-center bg-white p-2 rounded shadow-sm border">
+                <small class="text-muted fw-bold">ช่วงวันที่:</small>
+                <input type="date" name="start_date" class="form-control form-control-sm" value="<?= $filters['start_date'] ?? '' ?>">
+                <span>-</span>
+                <input type="date" name="end_date" class="form-control form-control-sm" value="<?= $filters['end_date'] ?? '' ?>">
+                <button type="submit" class="btn btn-primary btn-sm">ตกลง</button>
+                <a href="<?= base_url('committee/reports') ?>" class="btn btn-outline-secondary btn-sm">ล้าง</a>
+            </form>
+            <button onclick="exportTableToExcel('detailTable')" class="btn btn-success">
+                <i class="fas fa-file-excel"></i> Export Excel
+            </button>
+        </div>
     </div>
 
     <div class="row mb-4">
@@ -97,26 +107,29 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <?php if(!empty($top_students)): ?>
-                                    <?php foreach($top_students as $index => $student): ?>
-                                    <tr>
-                                        <td class="text-center fw-bold">
-                                            <?php if($index == 0): ?> 🥇
-                                            <?php elseif($index == 1): ?> 🥈
-                                            <?php elseif($index == 2): ?> 🥉
-                                            <?php else: ?> <?= $index + 1 ?>
-                                            <?php endif; ?>
-                                        </td>
-                                        <td><?= $student['student_id'] ?></td>
-                                        <td><?= $student['full_name'] ?></td>
-                                        <td><?= $student['major_name'] ?></td>
-                                        <td class="text-center">
-                                            <span class="badge bg-danger rounded-pill px-3"><?= $student['join_count'] ?> ครั้ง</span>
-                                        </td>
-                                    </tr>
+                                <?php if (!empty($top_students)): ?>
+                                    <?php foreach ($top_students as $index => $student): ?>
+                                        <tr>
+                                            <td class="text-center fw-bold">
+                                                <?php if ($index == 0): ?> 🥇
+                                                <?php elseif ($index == 1): ?> 🥈
+                                                <?php elseif ($index == 2): ?> 🥉
+                                                <?php else: ?>             <?= $index + 1 ?>
+                                                <?php endif; ?>
+                                            </td>
+                                            <td><?= $student['student_id'] ?></td>
+                                            <td><?= $student['full_name'] ?></td>
+                                            <td><?= $student['major_name'] ?></td>
+                                            <td class="text-center">
+                                                <span class="badge bg-danger rounded-pill px-3"><?= $student['join_count'] ?>
+                                                    ครั้ง</span>
+                                            </td>
+                                        </tr>
                                     <?php endforeach; ?>
                                 <?php else: ?>
-                                    <tr><td colspan="5" class="text-center text-muted py-3">ยังไม่มีข้อมูลการเข้าร่วม</td></tr>
+                                    <tr>
+                                        <td colspan="5" class="text-center text-muted py-3">ยังไม่มีข้อมูลการเข้าร่วม</td>
+                                    </tr>
                                 <?php endif; ?>
                             </tbody>
                         </table>
@@ -136,31 +149,46 @@
                     <thead class="table-light">
                         <tr>
                             <th>ชื่อกิจกรรม</th>
+                            <th class="text-center">เรตติ้ง</th>
+                            <th class="text-center">ประเมิน</th>
                             <th>วันที่จัด</th>
                             <th>สถานที่</th>
                             <th>สถานะ</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <?php foreach ($activities_list as $a) : ?>
+                        <?php foreach ($activities_list as $a): ?>
                             <tr>
                                 <td><?= esc($a['activity_name']) ?></td>
+                                <td class="text-center">
+                                    <?php if(isset($feedback_summary[$a['activity_id']])): ?>
+                                        <span class="text-warning fw-bold"><?= number_format($feedback_summary[$a['activity_id']]['avg_rating'], 1) ?></span>
+                                        <small class="text-muted">/ 5</small>
+                                    <?php else: ?>
+                                        <span class="text-muted small">-</span>
+                                    <?php endif; ?>
+                                </td>
+                                <td class="text-center">
+                                    <span class="badge bg-light text-dark border">
+                                        <?= $feedback_summary[$a['activity_id']]['feedback_count'] ?? 0 ?>
+                                    </span>
+                                </td>
                                 <td><?= date('d/m/Y', strtotime($a['start_date'])) ?></td>
                                 <td><?= esc($a['location']) ?></td>
                                 <td>
-                                    <?php 
-                                        $badge = match($a['status']) {
-                                            'completed' => 'success',
-                                            'open' => 'primary',
-                                            'cancelled' => 'danger',
-                                            default => 'secondary'
-                                        };
-                                        $text = match($a['status']) {
-                                            'completed' => 'เสร็จสิ้น',
-                                            'open' => 'เปิดรับสมัคร',
-                                            'cancelled' => 'ยกเลิก',
-                                            default => 'ปิด/อื่นๆ'
-                                        };
+                                    <?php
+                                    $badge = match ($a['status']) {
+                                        'completed' => 'success',
+                                        'open' => 'primary',
+                                        'cancelled' => 'danger',
+                                        default => 'secondary'
+                                    };
+                                    $text = match ($a['status']) {
+                                        'completed' => 'เสร็จสิ้น',
+                                        'open' => 'เปิดรับสมัคร',
+                                        'cancelled' => 'ยกเลิก',
+                                        default => 'ปิด/อื่นๆ'
+                                    };
                                     ?>
                                     <span class="badge bg-<?= $badge ?>"><?= $text ?></span>
                                 </td>
@@ -221,20 +249,20 @@
     });
 
     // ฟังก์ชัน Export Excel
-    function exportTableToExcel(tableID, filename = 'report_activity'){
+    function exportTableToExcel(tableID, filename = 'report_activity') {
         var downloadLink;
         var dataType = 'application/vnd.ms-excel';
         var tableSelect = document.getElementById(tableID);
         var tableHTML = tableSelect.outerHTML.replace(/ /g, '%20');
-        
-        filename = filename?filename+'.xls':'excel_data.xls';
+
+        filename = filename ? filename + '.xls' : 'excel_data.xls';
         downloadLink = document.createElement("a");
         document.body.appendChild(downloadLink);
-        
-        if(navigator.msSaveOrOpenBlob){
-            var blob = new Blob(['\ufeff', tableHTML], {type: dataType});
-            navigator.msSaveOrOpenBlob( blob, filename);
-        }else{
+
+        if (navigator.msSaveOrOpenBlob) {
+            var blob = new Blob(['\ufeff', tableHTML], { type: dataType });
+            navigator.msSaveOrOpenBlob(blob, filename);
+        } else {
             downloadLink.href = 'data:' + dataType + ', ' + tableHTML;
             downloadLink.download = filename;
             downloadLink.click();

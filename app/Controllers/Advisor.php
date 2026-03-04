@@ -10,76 +10,102 @@ class Advisor extends BaseController
     // เช็คสิทธิ์การเข้าใช้งาน (ตัวอย่างเบื้องต้น)
     // ไฟล์: app/Controllers/Advisor.php
 
-private function checkAuth()
-{
-    // ✅ แก้จาก 'isLoggedIn' เป็น 'is_logged_in' ให้ตรงกับ Auth.php
-    if (!session()->get('is_logged_in') || session()->get('role') !== 'advisor') {
-        return false;
+    private function checkAuth()
+    {
+        // ✅ แก้จาก 'isLoggedIn' เป็น 'is_logged_in' ให้ตรงกับ Auth.php
+        if (!session()->get('is_logged_in') || session()->get('role') !== 'advisor') {
+            return false;
+        }
+        return true;
     }
-    return true;
-}
 
     public function dashboard()
-{
-    if (!$this->checkAuth()) return redirect()->to('login');
-    
-    $db = \Config\Database::connect();
-    $activityModel = new \App\Models\ActivityModel();
+    {
+        if (!$this->checkAuth())
+            return redirect()->to('login');
 
-    // 1. ข้อมูลสรุปบน Card
-    $data['pending_count'] = $activityModel->where('status', 'planning')->countAllResults();
-    $data['total_activities'] = $activityModel->countAllResults();
-    $data['total_students'] = $db->table('students')->countAll();
+        $db = \Config\Database::connect();
+        $activityModel = new \App\Models\ActivityModel();
 
-    // 2. ข้อมูลสำหรับกราฟ (Chart.js)
-    $chartData = $db->table('activities')
-        ->select('activities.activity_name, COUNT(activity_registrations.registration_id) as total')
-        ->join('activity_registrations', 'activity_registrations.activity_id = activities.activity_id', 'left')
-        ->groupBy('activities.activity_id')
-        ->limit(6)
-        ->get()->getResultArray();
+        // 1. ข้อมูลสรุปบน Card
+        $data['pending_count'] = $activityModel->where('status', 'planning')->countAllResults();
+        $data['total_activities'] = $activityModel->countAllResults();
+        $data['total_students'] = $db->table('students')->countAll();
 
-    $data['chart_labels'] = array_column($chartData, 'activity_name');
-    $data['chart_values'] = array_column($chartData, 'total');
+        // 2. ข้อมูลสำหรับกราฟ (Chart.js)
+        $chartData = $db->table('activities')
+            ->select('activities.activity_name, COUNT(activity_registrations.registration_id) as total')
+            ->join('activity_registrations', 'activity_registrations.activity_id = activities.activity_id', 'left')
+            ->groupBy('activities.activity_id')
+            ->limit(6)
+            ->get()->getResultArray();
 
-    // 3. ข้อมูลแบบตารางเดิม
-    $data['activities'] = $db->table('activities')
-        ->select('activities.*, COUNT(activity_registrations.registration_id) as participant_count')
-        ->join('activity_registrations', 'activity_registrations.activity_id = activities.activity_id', 'left')
-        ->groupBy('activities.activity_id')
-        ->orderBy('activities.start_date', 'DESC')
-        ->get()->getResultArray();
+        $data['chart_labels'] = array_column($chartData, 'activity_name');
+        $data['chart_values'] = array_column($chartData, 'total');
 
-    return view('advisor/dashboard', $data);
-}
+        // 3. ข้อมูลแบบตารางเดิม
+        $data['activities'] = $db->table('activities')
+            ->select('activities.*, COUNT(activity_registrations.registration_id) as participant_count')
+            ->join('activity_registrations', 'activity_registrations.activity_id = activities.activity_id', 'left')
+            ->groupBy('activities.activity_id')
+            ->orderBy('activities.start_date', 'DESC')
+            ->get()->getResultArray();
+
+        return view('advisor/dashboard', $data);
+    }
 
     // --- 1.3.3.1 ตรวจสอบกิจกรรม (อนุมัติกิจกรรม) ---
     public function check_activities()
     {
-        if (!$this->checkAuth()) return redirect()->to('login');
-        
+        if (!$this->checkAuth())
+            return redirect()->to('login');
+
         $activityModel = new ActivityModel();
         // ดึงกิจกรรมทั้งหมด โดยเรียงเอาที่รออนุมัติ (planning) ขึ้นก่อน
         $data['activities'] = $activityModel->orderBy('status', 'DESC')->findAll();
-        
+
         return view('advisor/check_activities', $data);
     }
 
     public function approve_activity($id)
     {
-        if (!$this->checkAuth()) return redirect()->to('login');
-        
+        if (!$this->checkAuth())
+            return redirect()->to('login');
+
+        $db = \Config\Database::connect();
         $activityModel = new ActivityModel();
+
+        // ดึงข้อมูลกิจกรรมและอีเมลของผู้สร้าง (กรรมการ)
+        $activity = $db->table('activities')
+            ->select('activities.*, students.full_name as creator_name, students.email')
+            ->join('students', 'students.student_id = activities.created_by_committee')
+            ->where('activity_id', $id)
+            ->get()->getRowArray();
+
         $activityModel->update($id, ['status' => 'approved']);
-        
+
+        // ส่งอีเมลแจ้งเตือนกรรมการ
+        if ($activity && !empty($activity['email'])) {
+            helper('email');
+            $subject = "อนุมัติกิจกรรมแล้ว: " . $activity['activity_name'];
+            $message = "
+                <h3>สวัสดีคุณ {$activity['creator_name']}</h3>
+                <p>กิจกรรม <strong>{$activity['activity_name']}</strong> ที่คุณสร้างได้รับการ <strong>อนุมัติ</strong> จากอาจารย์ที่ปรึกษาแล้ว</p>
+                <p>นักศึกษาสามารถมองเห็นและสมัครเข้าร่วมกิจกรรมนี้ได้แล้ว</p>
+                <p>ขอบคุณครับ</p>
+            ";
+            send_activity_email($activity['email'], $subject, $message);
+        }
+
         return redirect()->to('advisor/check_activities')->with('success', 'อนุมัติกิจกรรมเรียบร้อยแล้ว นักศึกษาสามารถมองเห็นกิจกรรมนี้ได้แล้ว');
     }
 
     // --- 1.3.3.2 รายงานที่เกี่ยวข้องกับอาจารย์ ---
     public function reports()
     {
-        if (!$this->checkAuth()) return redirect()->to('login');
-        
+        if (!$this->checkAuth())
+            return redirect()->to('login');
+
         $db = \Config\Database::connect();
         // รายงานการดำเนินกิจกรรมทั้งหมดและจำนวนคนเข้าร่วม
         $data['activities'] = $db->table('activities')
@@ -94,14 +120,15 @@ private function checkAuth()
     // --- 1.3.3.2 รายงานรายชื่อนักศึกษาที่เข้าร่วมกิจกรรม ---
     public function report_participants($activityId)
     {
-        if (!$this->checkAuth()) return redirect()->to('login');
+        if (!$this->checkAuth())
+            return redirect()->to('login');
 
         $db = \Config\Database::connect();
         $activityModel = new \App\Models\ActivityModel();
-        
+
         // 1. ดึงข้อมูลกิจกรรมเพื่อเอาชื่อมาโชว์ในหัวข้อ
         $data['activity'] = $activityModel->find($activityId);
-        
+
         if (!$data['activity']) {
             return redirect()->to('advisor/reports')->with('msg', 'ไม่พบข้อมูลกิจกรรม');
         }
@@ -120,12 +147,35 @@ private function checkAuth()
         return view('advisor/report_participants', $data);
     }
     public function reject_activity($id)
-{
-    if (!$this->checkAuth()) return redirect()->to('login');
-    
-    $model = new \App\Models\ActivityModel();
-    $model->update($id, ['status' => 'rejected']);
-    
-    return redirect()->to('advisor/check_activities')->with('error', 'ปฏิเสธกิจกรรมเรียบร้อยแล้ว สถานะถูกเปลี่ยนเป็น "ไม่ผ่านอนุมัติ"');
-}
+    {
+        if (!$this->checkAuth())
+            return redirect()->to('login');
+
+        $db = \Config\Database::connect();
+        $activityModel = new \App\Models\ActivityModel();
+
+        // ดึงข้อมูลกิจกรรมและอีเมลของผู้สร้าง (กรรมการ)
+        $activity = $db->table('activities')
+            ->select('activities.*, students.full_name as creator_name, students.email')
+            ->join('students', 'students.student_id = activities.created_by_committee')
+            ->where('activity_id', $id)
+            ->get()->getRowArray();
+
+        $activityModel->update($id, ['status' => 'rejected']);
+
+        // ส่งอีเมลแจ้งเตือนกรรมการ
+        if ($activity && !empty($activity['email'])) {
+            helper('email');
+            $subject = "กิจกรรมไม่ผ่านการอนุมัติ: " . $activity['activity_name'];
+            $message = "
+                <h3>สวัสดีคุณ {$activity['creator_name']}</h3>
+                <p>กิจกรรม <strong>{$activity['activity_name']}</strong> ที่คุณสร้าง <strong>ไม่ผ่านการอนุมัติ</strong> จากอาจารย์ที่ปรึกษาแล้ว</p>
+                <p>โปรดตรวจสอบรายละเอียดและแก้ไขตามความเหมาะสม</p>
+                <p>ขอบคุณครับ</p>
+            ";
+            send_activity_email($activity['email'], $subject, $message);
+        }
+
+        return redirect()->to('advisor/check_activities')->with('error', 'ปฏิเสธกิจกรรมเรียบร้อยแล้ว สถานะถูกเปลี่ยนเป็น "ไม่ผ่านอนุมัติ"');
+    }
 }

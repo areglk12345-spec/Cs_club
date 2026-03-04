@@ -38,14 +38,14 @@
 
                         <div class="mb-3">
                             <label class="form-label">สาขาวิชา <span class="text-danger">*</span></label>
-                            <select name="major_id" class="form-select" required>
-                                <option value="">-- เลือกสาขาวิชา --</option>
-                                <?php foreach($majors as $major): ?>
-                                    <option value="<?= $major['major_id'] ?>" <?= old('major_id') == $major['major_id'] ? 'selected' : '' ?>>
-                                        <?= $major['major_name'] ?>
-                                    </option>
-                                <?php endforeach; ?>
                             </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">อีเมล <span class="text-danger">*</span></label>
+                            <input type="email" name="email" class="form-control" 
+                                   value="<?= old('email') ?>" placeholder="example@email.com" required>
+                            <small class="text-muted" style="font-size: 0.8rem;">ใช้สำหรับรับแจ้งเตือนกิจกรรม</small>
                         </div>
 
                         <div class="mb-3">
@@ -67,7 +67,9 @@
 
                         <div class="d-grid gap-2">
                             <button type="submit" class="btn btn-success btn-lg">ลงทะเบียน</button>
-                            <a href="<?= base_url('login') ?>" class="btn btn-outline-secondary">กลับไปหน้าเข้าสู่ระบบ</a>
+                            <div class="text-center mt-2">
+                                <a href="<?= base_url('login') ?>" class="small">กลับไปหน้าเข้าสู่ระบบ</a>
+                            </div>
                         </div>
 
                     </form>
